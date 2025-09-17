@@ -1,15 +1,31 @@
 from dotenv import load_dotenv
 from agents import Agent, Runner
+from agents.mcp import MCPServerStdio
 
 load_dotenv()
 
 
-def main():
-    agent = Agent(
-        "Assistant", instruction="You are a helpful assistant", model="gpt-4.1"
-    )
-    runner = Runner.run_sync(agent, input="Hello!")
-    print(runner.final_output)
+async def main():
+    async with MCPServerStdio(
+        params={
+            "command": "npx",
+            "args": [
+              "-y",
+              "@modelcontextprotocol/server-puppeteer"
+            ]
+        }
+    ) as server:
+        agent = Agent(
+            "Assistant",
+            instructions="You are a helpful assistant",
+            model="gpt-4.1",
+            mcp_servers=[server],
+        )
+        runner = await Runner.run(agent, input="Open Puppeteer, go to abidportfolio-web.vercel.app")
+        print(runner.final_output)
+
 
 if __name__ == "__main__":
-    main()
+    import asyncio
+
+    asyncio.run(main())
